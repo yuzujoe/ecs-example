@@ -161,3 +161,15 @@ resource "aws_route_table_association" "private_1" {
   route_table_id = aws_route_table.private_1.id
   subnet_id      = aws_subnet.private_1.id
 }
+
+#####################
+# Security Group
+#####################
+
+module "ecs_example_sg" {
+  source = "./security_group"
+  name   = "module-sg"
+  vpc_id = aws_vpc.ecs_vpc.id
+  port   = 80
+  cidr_blocks = ["0.0.0.0/0"]
+}
