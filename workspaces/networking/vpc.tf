@@ -18,15 +18,25 @@ resource "aws_vpc" "ecs_vpc" {
 # Public Subnet
 #####################
 
-resource "aws_subnet" "public" {
-  cidr_block = "10.9.0.0/24"
-  vpc_id     = aws_vpc.ecs_vpc.id
-  // Automatically assigning public ip address
-  map_public_ip_on_launch = true
+resource "aws_subnet" "public_0" {
+  cidr_block              = "10.9.1.0/24"
+  vpc_id                  = aws_vpc.ecs_vpc.id
   availability_zone       = "ap-northeast-1a"
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "ecs-example-public-subnet-1a"
+  }
+}
+
+resource "aws_subnet" "public_1" {
+  cidr_block              = "10.9.2.0/24"
+  vpc_id                  = aws_vpc.ecs_vpc.id
+  availability_zone       = "ap-northeast-1c"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "ecs-example-public-subnet-1c"
   }
 }
 
@@ -52,8 +62,13 @@ resource "aws_route" "public" {
   destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+resource "aws_route_table_association" "public_0" {
+  subnet_id      = aws_subnet.public_0.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_1" {
+  subnet_id      = aws_subnet.public_1.id
   route_table_id = aws_route_table.public.id
 }
 
@@ -61,8 +76,8 @@ resource "aws_route_table_association" "public" {
 # Private Subnet
 #####################
 
-resource "aws_subnet" "private" {
-  cidr_block              = "10.9.64.0/24"
+resource "aws_subnet" "private_0" {
+  cidr_block              = "10.9.65.0/24"
   vpc_id                  = aws_vpc.ecs_vpc.id
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = false
@@ -72,36 +87,77 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.ecs_vpc.id
-}
+resource "aws_subnet" "private_1" {
+  cidr_block              = "10.9.66.0/24"
+  vpc_id                  = aws_vpc.ecs_vpc.id
+  availability_zone       = "ap-northeast-1c"
+  map_public_ip_on_launch = false
 
-resource "aws_route_table_association" "private" {
-  route_table_id = aws_route_table.private.id
-  subnet_id      = aws_subnet.private.id
+  tags = {
+    Name = "ecs-example-private-subnet-1c"
+  }
 }
 
 #####################
 # NAT Gateway
 #####################
 
-resource "aws_eip" "nat_gateway" {
+resource "aws_eip" "nat_gateway_0" {
   vpc        = true
   depends_on = [aws_internet_gateway.ecs-example]
 }
 
-resource "aws_nat_gateway" "ecs-example" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.public.id
+resource "aws_eip" "nat_gateway_1" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.ecs-example]
+}
+
+resource "aws_nat_gateway" "nat_gateway_0" {
+  allocation_id = aws_eip.nat_gateway_0.id
+  subnet_id     = aws_subnet.public_0.id
   depends_on    = [aws_internet_gateway.ecs-example]
 
   tags = {
-    Name = "ecs-example"
+    Name = "ecs-example-nat-gateway-1"
   }
 }
 
-resource "aws_route" "private" {
-  route_table_id         = aws_route_table.private.id
-  nat_gateway_id         = aws_nat_gateway.ecs-example.id
+resource "aws_nat_gateway" "nat_gateway_1" {
+  allocation_id = aws_eip.nat_gateway_1.id
+  subnet_id     = aws_subnet.public_1.id
+  depends_on    = [aws_internet_gateway.ecs-example]
+}
+
+#####################
+# Route Table
+#####################
+
+resource "aws_route_table" "private_0" {
+  vpc_id = aws_vpc.ecs_vpc.id
+}
+
+resource "aws_route_table" "private_1" {
+  vpc_id = aws_vpc.ecs_vpc.id
+}
+
+resource "aws_route" "private_0" {
+  route_table_id         = aws_route_table.private_0.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_0.id
   destination_cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_route" "private_1" {
+  route_table_id         = aws_route_table.private_1.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_1.id
+  destination_cidr_block = "0.0.0.0/0"
+}
+
+resource "aws_route_table_association" "private_0" {
+  route_table_id = aws_route_table.private_0.id
+  subnet_id      = aws_subnet.private_0.id
+}
+
+resource "aws_route_table_association" "private_1" {
+  route_table_id = aws_route_table.private_1.id
+  subnet_id      = aws_subnet.private_1.id
 }
