@@ -24,6 +24,10 @@ resource "aws_subnet" "public" {
   // Automatically assigning public ip address
   map_public_ip_on_launch = true
   availability_zone       = "ap-northeast-1a"
+
+  tags = {
+    Name = "ecs-example-public-subnet-1a"
+  }
 }
 
 resource "aws_internet_gateway" "ecs-example" {
@@ -62,6 +66,10 @@ resource "aws_subnet" "private" {
   vpc_id                  = aws_vpc.ecs_vpc.id
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = false
+
+  tags = {
+    Name = "ecs-example-private-subnet-1a"
+  }
 }
 
 resource "aws_route_table" "private" {
