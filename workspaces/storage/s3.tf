@@ -43,39 +43,3 @@ resource "aws_s3_bucket" "public" {
   }
 }
 
-#####################
-# Log Bucket
-#####################
-
-resource "aws_s3_bucket" "alb_log" {
-  bucket = "alb-ecs-terraform"
-
-  lifecycle_rule {
-    enabled = true
-
-    expiration {
-      days = "180"
-    }
-  }
-}
-
-#####################
-# Bucket Policy
-#####################
-
-data "aws_iam_policy_document" "alb_log" {
-  statement {
-    effect    = "Allow"
-    actions   = ["s3:PutObject"]
-    resources = ["arn:aws:s3:::${aws_s3_bucket.alb_log.id}/*"]
-
-    principals {
-      identifiers = ["273172227336"]
-      type        = "AWS"
-    }
-  }
-}
-resource "aws_s3_bucket_policy" "alb_log" {
-  bucket = aws_s3_bucket.alb_log.id
-  policy = data.aws_iam_policy_document.alb_log.json
-}
