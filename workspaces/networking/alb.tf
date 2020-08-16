@@ -110,9 +110,33 @@ module "http_redirect_sg" {
 }
 
 #####################
+# Route53
+#####################
+
+data "aws_route53_zone" "ecs-example" {
+  name = "joegate.work"
+}
+
+resource "aws_route53_record" "ecs-example" {
+  name    = data.aws_route53_zone.ecs-example.name
+  type    = "A"
+  zone_id = data.aws_route53_zone.ecs-example.zone_id
+
+  alias {
+    evaluate_target_health = true
+    name                   = aws_lb.ecs-example.dns_name
+    zone_id                = aws_lb.ecs-example.zone_id
+  }
+}
+
+#####################
 # OutPut
 #####################
 
 output "alb_dns_name" {
   value = aws_lb.ecs-example.dns_name
+}
+
+output "domain_name" {
+  value = aws_route53_record.ecs-example.name
 }
