@@ -2,7 +2,7 @@
 # ALB
 #####################
 
-resource "aws_lb" "ecs-example" {
+resource "aws_lb" "ecs_example" {
   name                       = "ecs-example"
   load_balancer_type         = "application"
   internal                   = false
@@ -27,7 +27,7 @@ resource "aws_lb" "ecs-example" {
 }
 
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.ecs-example.arn
+  load_balancer_arn = aws_lb.ecs_example.arn
   port              = 80
   protocol          = "HTTP"
 
@@ -42,6 +42,38 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.ecs_example.arn
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate.ecs_example.arn
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "This is 「HTTPS」！！"
+      status_code  = "200"
+    }
+  }
+}
+
+resource "aws_lb_listener" "redirect_http_to_https" {
+  load_balancer_arn = aws_lb.ecs_example.arn
+  port              = "8080"
+
+  default_action {
+    type = "redirect"
+
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
 
 #####################
 # Log Bucket
@@ -124,8 +156,8 @@ resource "aws_route53_record" "ecs-example" {
 
   alias {
     evaluate_target_health = true
-    name                   = aws_lb.ecs-example.dns_name
-    zone_id                = aws_lb.ecs-example.zone_id
+    name                   = aws_lb.ecs_example.dns_name
+    zone_id                = aws_lb.ecs_example.zone_id
   }
 }
 
@@ -134,7 +166,7 @@ resource "aws_route53_record" "ecs-example" {
 #####################
 
 output "alb_dns_name" {
-  value = aws_lb.ecs-example.dns_name
+  value = aws_lb.ecs_example.dns_name
 }
 
 output "domain_name" {
