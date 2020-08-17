@@ -13,6 +13,7 @@ resource "aws_ecs_task_definition" "ecs_example" {
   memory                   = "512"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
+  execution_role_arn       = "arn:aws:iam::273172227336:role/ecs-task-execution"
 }
 
 resource "aws_ecs_service" "ecs_example" {
