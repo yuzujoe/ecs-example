@@ -1,5 +1,5 @@
 #####################
-# IAM Policy
+# Describe Regions
 #####################
 
 data "aws_iam_policy_document" "allow_describe_regions" {
@@ -10,32 +10,41 @@ data "aws_iam_policy_document" "allow_describe_regions" {
   }
 }
 
-resource "aws_iam_policy" "allow_describe_regions" {
-  name   = "allow_describe_regions"
-  policy = data.aws_iam_policy_document.allow_describe_regions.json
+module "describe_regions_for_ec2" {
+  source     = "./iam_role"
+  name       = "describe-regions-for-ec2"
+  identifier = "ec2.amazonaws.com"
+  policy     = data.aws_iam_policy_document.allow_describe_regions.json
 }
 
 #####################
-# IAM Role
+# ECS Task Role
 #####################
 
-data "aws_iam_policy_document" "ec2_assume_role" {
-  statement {
-    actions = ["sts:AssumeRole"]
+data "aws_iam_policy" "ecs_task_execution_role_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
 
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
+data "aws_iam_policy_document" "ecs_task_execution" {
+  source_json = data.aws_iam_policy.ecs_task_execution_role_policy.policy
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:GetParameters", "kms:Decrypt"]
+    resources = ["*"]
   }
 }
 
-resource "aws_iam_role" "ec2_assume_role" {
-  name               = "ec2_assume_role"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+module "ecs_task_execution_role" {
+  source     = "./iam_role"
+  name       = "ecs-task-execution"
+  identifier = "ecs-tasks.amazonaws.com"
+  policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_assume_role_attachment" {
-  policy_arn = aws_iam_policy.allow_describe_regions.arn
-  role       = aws_iam_role.ec2_assume_role.name
+#####################
+# OutPuts
+#####################
+
+output "ecs_task_execution_role" {
+  value = module.ecs_task_execution_role.iam_role_arn
 }
