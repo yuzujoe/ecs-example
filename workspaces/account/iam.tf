@@ -42,9 +42,28 @@ module "ecs_task_execution_role" {
 }
 
 #####################
+# ECS Event Role
+#####################
+
+data "aws_iam_policy" "ecs_event_role_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceEventsRole"
+}
+
+module "ecs_event_role" {
+  source     = "./iam_role"
+  name       = "ecs-events"
+  identifier = "events.amazonaws.com"
+  policy     = data.aws_iam_policy.ecs_event_role_policy.policy
+}
+
+#####################
 # OutPuts
 #####################
 
 output "ecs_task_execution_role" {
   value = module.ecs_task_execution_role.iam_role_arn
+}
+
+output "ecs_event_role" {
+  value = module.ecs_event_role.iam_role_arn
 }
