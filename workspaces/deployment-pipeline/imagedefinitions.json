@@ -1,0 +1,6 @@
+[
+  {
+    "name": "ecs-example",
+    "imageUrl": "your-repository-uri:latest"
+  }
+]
