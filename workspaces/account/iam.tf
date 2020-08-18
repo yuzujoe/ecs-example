@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "allow_describe_regions" {
 }
 
 module "describe_regions_for_ec2" {
-  source     = "./iam_role"
+  source     = "../modules/iam_role"
   name       = "describe-regions-for-ec2"
   identifier = "ec2.amazonaws.com"
   policy     = data.aws_iam_policy_document.allow_describe_regions.json
@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "ecs_task_execution" {
 }
 
 module "ecs_task_execution_role" {
-  source     = "./iam_role"
+  source     = "../modules/iam_role"
   name       = "ecs-task-execution"
   identifier = "ecs-tasks.amazonaws.com"
   policy     = data.aws_iam_policy_document.ecs_task_execution.json
@@ -50,7 +50,7 @@ data "aws_iam_policy" "ecs_event_role_policy" {
 }
 
 module "ecs_event_role" {
-  source     = "./iam_role"
+  source     = "../modules/iam_role"
   name       = "ecs-events"
   identifier = "events.amazonaws.com"
   policy     = data.aws_iam_policy.ecs_event_role_policy.policy
