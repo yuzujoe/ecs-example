@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "ecs_example" {
   memory                   = "512"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = "arn:aws:iam::273172227336:role/ecs-task-execution"
+  execution_role_arn       = data.terraform_remote_state.account.outputs.ecs_task_execution_role
 }
 
 resource "aws_ecs_service" "ecs_example" {
@@ -30,8 +30,8 @@ resource "aws_ecs_service" "ecs_example" {
     security_groups  = [module.nginx_sg.security_group_id]
 
     subnets = [
-      data.aws_subnet.private_0.id,
-      data.aws_subnet.private_1.id
+      data.terraform_remote_state.networking.outputs.aws_subnet_private_0,
+      data.terraform_remote_state.networking.outputs.aws_subnet_private_1
     ]
   }
 
@@ -64,19 +64,6 @@ resource "aws_ecs_task_definition" "ecs_example_batch" {
 # data
 #####################
 
-data "aws_subnet" "private_0" {
-  id = "subnet-041c96ccf15f7e1fd"
-}
-
-data "aws_subnet" "private_1" {
-  id = "subnet-0f4daa1f637cb7327"
-}
-
-data "aws_vpc" "ecs_example" {
-  id         = "vpc-0e2282eecbc42fa40"
-  cidr_block = "10.9.0.0/16"
-}
-
 data "aws_lb_target_group" "ecs_example" {
   arn = "arn:aws:elasticloadbalancing:ap-northeast-1:273172227336:targetgroup/ecs-example/30571b62061c6a3f"
 }
@@ -86,9 +73,9 @@ data "aws_lb_target_group" "ecs_example" {
 #####################
 
 module "nginx_sg" {
-  source      = "../networking/security_group"
+  source      = "../modules/security_group"
   name        = "nginx-sg"
-  vpc_id      = data.aws_vpc.ecs_example.id
+  vpc_id      = data.terraform_remote_state.networking.outputs.aws_pvc
   port        = 80
-  cidr_blocks = [data.aws_vpc.ecs_example.cidr_block]
+  cidr_blocks = [data.terraform_remote_state.networking.outputs.aws_vpc_cidr]
 }

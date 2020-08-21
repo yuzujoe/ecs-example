@@ -1,5 +1,3 @@
 /workspaces/**/.terraform/*
 /workspaces/**/*.tfstate
 /workspaces/**/*.tfstate.*
-
-/workspaces/networking/security_group/.terraform/*

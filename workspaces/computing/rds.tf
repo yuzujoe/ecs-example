@@ -27,8 +27,8 @@ resource "aws_db_subnet_group" "ecs_example" {
   name = "ecs-example"
 
   subnet_ids = [
-    data.aws_subnet.private_0.id,
-    data.aws_subnet.private_1.id
+    data.terraform_remote_state.networking.outputs.aws_subnet_private_0,
+    data.terraform_remote_state.networking.outputs.aws_subnet_private_1
   ]
 }
 
@@ -65,9 +65,9 @@ resource "aws_db_instance" "ecs_example" {
 }
 
 module "mysql_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "mysql-sg"
-  vpc_id      = data.aws_vpc.ecs_example.id
+  vpc_id      = data.terraform_remote_state.networking.outputs.aws_pvc
   port        = 3306
-  cidr_blocks = [data.aws_vpc.ecs_example.cidr_block]
+  cidr_blocks = [data.terraform_remote_state.networking.outputs.aws_vpc_cidr]
 }

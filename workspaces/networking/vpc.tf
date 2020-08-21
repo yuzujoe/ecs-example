@@ -167,7 +167,7 @@ resource "aws_route_table_association" "private_1" {
 #####################
 
 module "ecs_example_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "module-sg"
   vpc_id      = aws_vpc.ecs_vpc.id
   port        = 80

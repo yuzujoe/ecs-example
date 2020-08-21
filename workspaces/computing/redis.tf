@@ -14,7 +14,10 @@ resource "aws_elasticache_parameter_group" "ecs_example" {
 
 resource "aws_elasticache_subnet_group" "ecs_example" {
   name       = "ecs-example"
-  subnet_ids = [data.aws_subnet.private_0.id, data.aws_subnet.private_1.id]
+  subnet_ids = [
+    data.terraform_remote_state.networking.outputs.aws_subnet_private_0,
+    data.terraform_remote_state.networking.outputs.aws_subnet_private_1
+  ]
 }
 
 resource "aws_elasticache_replication_group" "ecs_example" {
@@ -36,9 +39,9 @@ resource "aws_elasticache_replication_group" "ecs_example" {
 }
 
 module "redis_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "redis-sg"
-  vpc_id      = data.aws_vpc.ecs_example.id
+  vpc_id      = data.terraform_remote_state.networking.outputs.aws_pvc
   port        = 6739
-  cidr_blocks = [data.aws_vpc.ecs_example.cidr_block]
+  cidr_blocks = [data.terraform_remote_state.networking.outputs.aws_vpc_cidr]
 }

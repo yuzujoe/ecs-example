@@ -43,23 +43,23 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.ecs_example.arn
-  port              = 443
-  protocol          = "HTTPS"
-  certificate_arn   = aws_acm_certificate.ecs_example.arn
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-
-  default_action {
-    type = "fixed-response"
-
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "This is 「HTTPS」！！"
-      status_code  = "200"
-    }
-  }
-}
+//resource "aws_lb_listener" "https" {
+//  load_balancer_arn = aws_lb.ecs_example.arn
+//  port              = 443
+//  protocol          = "HTTPS"
+//  certificate_arn   = aws_acm_certificate.ecs_example.arn
+//  ssl_policy        = "ELBSecurityPolicy-2016-08"
+//
+//  default_action {
+//    type = "fixed-response"
+//
+//    fixed_response {
+//      content_type = "text/plain"
+//      message_body = "This is 「HTTPS」！！"
+//      status_code  = "200"
+//    }
+//  }
+//}
 
 resource "aws_lb_listener" "redirect_http_to_https" {
   load_balancer_arn = aws_lb.ecs_example.arn
@@ -98,20 +98,21 @@ resource "aws_lb_target_group" "ecs_example" {
   depends_on = [aws_lb.ecs_example]
 }
 
-resource "aws_lb_listener_rule" "ecs_example" {
-  listener_arn = aws_lb_listener.https.arn
-  priority     = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs_example.arn
-  }
-
-  condition {
-    field  = "path-pattern"
-    values = ["/*"]
-  }
-}
+//resource "aws_lb_listener_rule" "ecs_example" {
+//  listener_arn = aws_lb_listener.https.arn
+//  priority     = 100
+//
+//  action {
+//    type             = "forward"
+//    target_group_arn = aws_lb_target_group.ecs_example.arn
+//  }
+//
+//  condition {
+//    path_pattern {
+//      values = ["/*"]
+//    }
+//  }
+//}
 
 #####################
 # Log Bucket
@@ -156,7 +157,7 @@ resource "aws_s3_bucket_policy" "alb_log" {
 #####################
 
 module "http_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "http-sg"
   vpc_id      = aws_vpc.ecs_vpc.id
   port        = 80
@@ -164,7 +165,7 @@ module "http_sg" {
 }
 
 module "https_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "https-sg"
   vpc_id      = aws_vpc.ecs_vpc.id
   port        = 443
@@ -172,7 +173,7 @@ module "https_sg" {
 }
 
 module "http_redirect_sg" {
-  source      = "./security_group"
+  source      = "../modules/security_group"
   name        = "http-redirect-sg"
   vpc_id      = aws_vpc.ecs_vpc.id
   port        = 8080
@@ -197,16 +198,4 @@ resource "aws_route53_record" "ecs-example" {
     name                   = aws_lb.ecs_example.dns_name
     zone_id                = aws_lb.ecs_example.zone_id
   }
-}
-
-#####################
-# OutPut
-#####################
-
-output "alb_dns_name" {
-  value = aws_lb.ecs_example.dns_name
-}
-
-output "domain_name" {
-  value = aws_route53_record.ecs-example.name
 }

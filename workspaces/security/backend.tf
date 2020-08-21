@@ -1,0 +1,20 @@
+#####################################
+# Management of tfstate
+#####################################
+terraform {
+  backend "s3" {
+    bucket = "security-tfstate-joe"
+    key    = "terraform.tfstate"
+    region = "ap-northeast-1"
+  }
+}
+
+data "terraform_remote_state" "networking" {
+  backend = "s3"
+
+  config = {
+    bucket = "networking-tfstate"
+    key    = "terraform.tfstate"
+    region = "ap-northeast-1"
+  }
+}
