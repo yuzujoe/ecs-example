@@ -8,11 +8,13 @@ For your reference, here is a description of how to deploy resources in each dir
 Please add additional resources if you need them.
 
 ```
-.
-|
-└── workspaces
-    ├── account (ex, iam-user, iam-role)
-    ├── computing (ex, EC2, ECS)
-    ├── networking (ex, VPC, subnet, security-group, ELB)
-    └── security (ex, parameter-store, KMS, key-pair)
+workspaces/
+├── account (iam)
+├── computing (ECS, RDS, Redis)
+├── deployment-pipeline (CodeDeploy, CodePipeline)
+├── modules
+├── networking (VPC, ALB)
+├── security (KMS, ACM)
+└── storage (S3)
+
 ```
