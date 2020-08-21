@@ -57,7 +57,7 @@ resource "aws_ecs_task_definition" "ecs_example_batch" {
   memory                   = "512"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  execution_role_arn       = "arn:aws:iam::273172227336:role/ecs-task-execution"
+  execution_role_arn       = data.terraform_remote_state.account.outputs.ecs_task_execution_role
 }
 
 #####################
@@ -65,7 +65,7 @@ resource "aws_ecs_task_definition" "ecs_example_batch" {
 #####################
 
 data "aws_lb_target_group" "ecs_example" {
-  arn = "arn:aws:elasticloadbalancing:ap-northeast-1:273172227336:targetgroup/ecs-example/30571b62061c6a3f"
+  arn = data.terraform_remote_state.networking.outputs.aws_lb_target_group_arn
 }
 
 #####################
