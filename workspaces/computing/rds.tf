@@ -41,7 +41,7 @@ resource "aws_db_instance" "ecs_example" {
   max_allocated_storage      = 100
   storage_type               = "gp2"
   storage_encrypted          = true
-  kms_key_id                 = var.kms_key_arn
+  kms_key_id                 = data.terraform_remote_state.security.outputs.aws_kms_arn
   username                   = "admin"
   password                   = "VeryStrongPassword!"
   multi_az                   = true

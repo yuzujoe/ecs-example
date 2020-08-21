@@ -28,3 +28,13 @@ data "terraform_remote_state" "networking" {
     region = "ap-northeast-1"
   }
 }
+
+data "terraform_remote_state" "security" {
+  backend = "s3"
+
+  config = {
+    bucket = "security-tfstate-joe"
+    key    = "terraform.tfstate"
+    region = "ap-northeast-1"
+  }
+}
