@@ -1,11 +1,8 @@
-# terraform-template
+# ecs-example
 
-This repository is used as a template for terraform directory structure.
+This is a sample repository for creating an environment to run ECS.
 
-The following configuration holds the basic configuration, so please use this repository as a base for expansion.
-For your reference, here is a description of how to deploy resources in each directory.
-
-Please add additional resources if you need them.
+The directory structure is as follows
 
 ```
 workspaces/
@@ -17,4 +14,46 @@ workspaces/
 ├── security (KMS, ACM)
 └── storage (S3)
 
+```
+
+You can use your favorite bucket name to manage the state, since the terraform remote state is managed by s3.
+
+## Usage
+
+```bash
+export AWS_PROFILE=<your profile>
+```
+
+Go to the target directory
+
+```bash
+cd workspace/<target directory>
+```
+
+create or update resources
+
+```bash
+terraform init #When using it for the first time
+
+terraform plan
+
+terraform apply
+```
+
+delete resources
+
+```bash
+terraform destroy
+```
+
+format
+
+```bash
+terraform fmt
+```
+
+validation
+
+```bash
+terraform validate
 ```
