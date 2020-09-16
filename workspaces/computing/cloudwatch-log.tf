@@ -32,7 +32,7 @@ resource "aws_cloudwatch_event_target" "ecs_example_batch" {
 
     network_configuration {
       assign_public_ip = false
-      subnets          = [data.aws_subnet.private_0.id]
+      subnets          = [data.terraform_remote_state.networking.outputs.aws_subnet_private_0]
     }
   }
 }
