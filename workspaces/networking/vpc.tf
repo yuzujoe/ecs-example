@@ -1,165 +1,105 @@
 #####################
-# VPC
-#####################
-
-resource "aws_vpc" "ecs_vpc" {
-  cidr_block = var.cidr_block
-  // Effectiveness of name resolution
-  enable_dns_support = true
-  // Automatically assigning Public DNS
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "ecs-example"
-  }
-}
-
-#####################
-# Public Subnet
-#####################
-
-resource "aws_subnet" "public_0" {
-  cidr_block              = "10.9.1.0/24"
-  vpc_id                  = aws_vpc.ecs_vpc.id
-  availability_zone       = "ap-northeast-1a"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "ecs-example-public-subnet-1a"
-  }
-}
-
-resource "aws_subnet" "public_1" {
-  cidr_block              = "10.9.2.0/24"
-  vpc_id                  = aws_vpc.ecs_vpc.id
-  availability_zone       = "ap-northeast-1c"
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "ecs-example-public-subnet-1c"
-  }
-}
-
-resource "aws_internet_gateway" "ecs-example" {
-  vpc_id = aws_vpc.ecs_vpc.id
-
-  tags = {
-    Name = "ecs-example"
-  }
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.ecs_vpc.id
-
-  tags = {
-    Name = "ecs-example"
-  }
-}
-
-resource "aws_route" "public" {
-  route_table_id         = aws_route_table.public.id
-  gateway_id             = aws_internet_gateway.ecs-example.id
-  destination_cidr_block = "0.0.0.0/0"
-}
-
-resource "aws_route_table_association" "public_0" {
-  subnet_id      = aws_subnet.public_0.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_1" {
-  subnet_id      = aws_subnet.public_1.id
-  route_table_id = aws_route_table.public.id
-}
-
-#####################
-# Private Subnet
-#####################
-
-resource "aws_subnet" "private_0" {
-  cidr_block              = "10.9.65.0/24"
-  vpc_id                  = aws_vpc.ecs_vpc.id
-  availability_zone       = "ap-northeast-1a"
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "ecs-example-private-subnet-1a"
-  }
-}
-
-resource "aws_subnet" "private_1" {
-  cidr_block              = "10.9.66.0/24"
-  vpc_id                  = aws_vpc.ecs_vpc.id
-  availability_zone       = "ap-northeast-1c"
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "ecs-example-private-subnet-1c"
-  }
-}
-
-#####################
 # NAT Gateway
 #####################
 
-resource "aws_eip" "nat_gateway_0" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.ecs-example]
+resource "aws_eip" "nat_gateway_a" {
+  vpc = true
 }
 
-resource "aws_eip" "nat_gateway_1" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.ecs-example]
+resource "aws_eip" "nat_gateway_c" {
+  vpc = true
 }
 
-resource "aws_nat_gateway" "nat_gateway_0" {
-  allocation_id = aws_eip.nat_gateway_0.id
-  subnet_id     = aws_subnet.public_0.id
-  depends_on    = [aws_internet_gateway.ecs-example]
+resource "aws_eip" "nat_gateway_d" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gateway_a" {
+  allocation_id = aws_eip.nat_gateway_a.id
+  subnet_id     = data.terraform_remote_state.vpc.outputs.private_subnet_a
 
   tags = {
-    Name = "ecs-example-nat-gateway-1"
+    Name = "ecs-example-nat-gateway-a"
   }
 }
 
-resource "aws_nat_gateway" "nat_gateway_1" {
-  allocation_id = aws_eip.nat_gateway_1.id
-  subnet_id     = aws_subnet.public_1.id
-  depends_on    = [aws_internet_gateway.ecs-example]
+resource "aws_nat_gateway" "nat_gateway_c" {
+  allocation_id = aws_eip.nat_gateway_c.id
+  subnet_id     = data.terraform_remote_state.vpc.outputs.private_subnet_c
+
+  tags = {
+    Name = "ecs-example-nat-gateway-c"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway_d" {
+  allocation_id = aws_eip.nat_gateway_d.id
+  subnet_id     = data.terraform_remote_state.vpc.outputs.private_subnet_d
+
+  tags = {
+    Name = "ecs-example-nat-gateway-d"
+  }
 }
 
 #####################
 # Route Table
 #####################
 
-resource "aws_route_table" "private_0" {
-  vpc_id = aws_vpc.ecs_vpc.id
+resource "aws_route_table" "private_a" {
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  tags = {
+    Name = "ecs-example-private-a"
+  }
 }
 
-resource "aws_route_table" "private_1" {
-  vpc_id = aws_vpc.ecs_vpc.id
+resource "aws_route_table" "private_c" {
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  tags = {
+    Name = "ecs-example-private-c"
+  }
 }
 
-resource "aws_route" "private_0" {
-  route_table_id         = aws_route_table.private_0.id
-  nat_gateway_id         = aws_nat_gateway.nat_gateway_0.id
+resource "aws_route_table" "private_d" {
+  vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
+
+  tags = {
+    Name = "ecs-example-private-d"
+  }
+}
+
+resource "aws_route" "private_a" {
+  route_table_id         = aws_route_table.private_a.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_a.id
   destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route" "private_1" {
-  route_table_id         = aws_route_table.private_1.id
-  nat_gateway_id         = aws_nat_gateway.nat_gateway_1.id
+resource "aws_route" "private_c" {
+  route_table_id         = aws_route_table.private_c.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_c.id
   destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route_table_association" "private_0" {
-  route_table_id = aws_route_table.private_0.id
-  subnet_id      = aws_subnet.private_0.id
+resource "aws_route" "private_d" {
+  route_table_id         = aws_route_table.private_d.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_d.id
+  destination_cidr_block = "0.0.0.0/0"
 }
 
-resource "aws_route_table_association" "private_1" {
-  route_table_id = aws_route_table.private_1.id
-  subnet_id      = aws_subnet.private_1.id
+resource "aws_route_table_association" "private_a" {
+  route_table_id = aws_route_table.private_a.id
+  subnet_id      = data.terraform_remote_state.vpc.outputs.private_subnet_a
+}
+
+resource "aws_route_table_association" "private_c" {
+  route_table_id = aws_route_table.private_c.id
+  subnet_id      = data.terraform_remote_state.vpc.outputs.private_subnet_c
+}
+
+resource "aws_route_table_association" "private_d" {
+  route_table_id = aws_route_table.private_d.id
+  subnet_id      = data.terraform_remote_state.vpc.outputs.private_subnet_d
 }
 
 #####################
@@ -169,7 +109,7 @@ resource "aws_route_table_association" "private_1" {
 module "ecs_example_sg" {
   source      = "../modules/security_group"
   name        = "module-sg"
-  vpc_id      = aws_vpc.ecs_vpc.id
+  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
   port        = 80
   cidr_blocks = ["0.0.0.0/0"]
 }
